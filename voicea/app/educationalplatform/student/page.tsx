@@ -7,10 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Book, Play, Mic } from "lucide-react";
 import ViewVideo from "./components/ViewVideo";
 import QuestionAnswer from "./components/QuestionAnswer";
-import BookReader from "@/app/educationalplatform/student/components/BookReader";
 import VoiceNoteTaker from "./components/VoiceNoteTaker";
 import StudentQuiz from "./components/StudentQuiz";
 import AssignmentWriting from "./components/AssignmentWriting";
+import dynamic from "next/dynamic";
+
+// Dynamically load BookReader with SSR disabled
+const BookReader = dynamic(
+  () => import("@/app/educationalplatform/student/components/BookReader"),
+  { ssr: false }
+);
 
 type ModalType = "video" | "qa" | "book" | "voice" | "quiz" | "assignment" | null;
 
@@ -24,7 +30,6 @@ export default function StudentDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
-  // Fetch logged-in user from localStorage
   useEffect(() => {
     const loggedInUser = localStorage.getItem("loggedInUser");
     if (loggedInUser) {
@@ -46,7 +51,6 @@ export default function StudentDashboard() {
 
   const openModal = useCallback((type: ModalType) => setActiveModal(type), []);
   const closeModal = useCallback(() => setActiveModal(null), []);
-
   const handleLogout = useCallback(() => {
     localStorage.removeItem("loggedInUser");
     router.push("/login");
@@ -64,7 +68,6 @@ export default function StudentDashboard() {
   return (
     <div className="min-h-screen bg-gray-100 py-12 relative">
       <div className="container mx-auto px-4">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-4xl font-bold text-purple-600">
             Welcome, {user?.email || "Student"}
@@ -82,7 +85,6 @@ export default function StudentDashboard() {
           Manage your educational resources efficiently.
         </p>
 
-        {/* Feature Highlights */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map(({ icon, title, desc, action }, index) => (
             <motion.div
@@ -103,7 +105,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Modals */}
       <AnimatePresence>
         {activeModal && (
           <motion.div

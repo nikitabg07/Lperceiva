@@ -19,7 +19,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch("https://voicea-back-ldg3.onrender.com/api/auth/login", {
+      const response = await fetch("https://lperceiva.onrender.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

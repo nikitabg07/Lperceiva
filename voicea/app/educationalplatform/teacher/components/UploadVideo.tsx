@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = "https://voicea-back-ldg3.onrender.com/api/videos";
+const API_URL = "https://lperceiva.onrender.com/api/videos";
 
 const UploadVideo = () => {
   const [title, setTitle] = useState("");

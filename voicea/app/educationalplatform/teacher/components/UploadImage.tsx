@@ -17,7 +17,7 @@ export default function UploadImage() {
     const formData = new FormData();
     formData.append("image", selectedFile);
 
-    const response = await fetch("https://voicea-back-ldg3.onrender.com/api/upload-image", {
+    const response = await fetch("https://lperceiva.onrender.com/api/upload-image", {
       method: "POST",
       body: formData,
     });

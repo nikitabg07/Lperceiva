@@ -59,7 +59,7 @@ export default function QuestionAnswer() {
     }
 
     try {
-      const response = await fetch("https://voicea-back-ldg3.onrender.com/api/questions/ask-question", {
+      const response = await fetch("https://lperceiva.onrender.com/api/questions/ask-question", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

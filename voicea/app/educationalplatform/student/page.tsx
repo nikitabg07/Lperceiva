@@ -1,21 +1,24 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import dynamic from "next/dynamic";
+
+// Icons (Optional if using emoji, remove if unused)
 import { Book, Play, Mic } from "lucide-react";
+
 import ViewVideo from "./components/ViewVideo";
 import QuestionAnswer from "./components/QuestionAnswer";
 import VoiceNoteTaker from "./components/VoiceNoteTaker";
 import StudentQuiz from "./components/StudentQuiz";
 import AssignmentWriting from "./components/AssignmentWriting";
-import dynamic from "next/dynamic";
 
-// Dynamically load BookReader with SSR disabled
+// Dynamically import BookReader for SSR safety
 const BookReader = dynamic(
   () => import("@/app/educationalplatform/student/components/BookReader"),
-  { ssr: false }
+  { ssr: false, loading: () => <p className="text-center">Loading Book Reader...</p> }
 );
 
 type ModalType = "video" | "qa" | "book" | "voice" | "quiz" | "assignment" | null;
@@ -30,6 +33,7 @@ export default function StudentDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
+  // Auth Check
   useEffect(() => {
     const loggedInUser = localStorage.getItem("loggedInUser");
     if (loggedInUser) {
@@ -49,21 +53,55 @@ export default function StudentDashboard() {
     }
   }, [router]);
 
-  const openModal = useCallback((type: ModalType) => setActiveModal(type), []);
-  const closeModal = useCallback(() => setActiveModal(null), []);
   const handleLogout = useCallback(() => {
     localStorage.removeItem("loggedInUser");
     router.push("/login");
   }, [router]);
 
+  const openModal = useCallback((type: ModalType) => setActiveModal(type), []);
+  const closeModal = useCallback(() => setActiveModal(null), []);
+
+  // Feature Cards
   const features = [
-    { icon: "🎥", title: "Video Lecture", desc: "Learn through video", action: () => openModal("video") },
-    { icon: "🤖", title: "Doubts", desc: "Ask and answer questions", action: () => openModal("qa") },
-    { icon: "📖", title: "Read Books", desc: "Listen to books in audio", action: () => openModal("book") },
-    { icon: "🎤", title: "Voice Note Taker", desc: "Record and save your voice notes", action: () => openModal("voice") },
-    { icon: "📝", title: "Take Quiz", desc: "Test your knowledge with quizzes", action: () => openModal("quiz") },
-    { icon: "📄", title: "Assignment Writing", desc: "Write and submit assignments", action: () => openModal("assignment") },
-  ];
+    { icon: "🎥", title: "Video Lecture", desc: "Learn through video", type: "video" },
+    { icon: "🤖", title: "Doubts", desc: "Ask and answer questions", type: "qa" },
+    { icon: "📖", title: "Read Books", desc: "Listen to books in audio", type: "book" },
+    { icon: "🎤", title: "Voice Note Taker", desc: "Record and save your voice notes", type: "voice" },
+    { icon: "📝", title: "Take Quiz", desc: "Test your knowledge with quizzes", type: "quiz" },
+    { icon: "📄", title: "Assignment Writing", desc: "Write and submit assignments", type: "assignment" },
+  ] as const;
+
+  // Modal Content Mapping
+  const modalContent = useMemo(() => {
+    if (!user) return null;
+
+    switch (activeModal) {
+      case "video":
+        return <ViewVideo userRole={user.userType} userEmail={user.email} />;
+      case "qa":
+        return <QuestionAnswer />;
+      case "book":
+        return <BookReader />;
+      case "voice":
+        return <VoiceNoteTaker />;
+      case "quiz":
+        return <StudentQuiz />;
+      case "assignment":
+        return <AssignmentWriting />;
+      default:
+        return null;
+    }
+  }, [activeModal, user]);
+
+  const modalTitle: Record<ModalType, string> = {
+    video: "Uploaded Videos",
+    qa: "Question & Answer",
+    book: "Book Reader",
+    voice: "Voice Note Taker",
+    quiz: "Take a Quiz",
+    assignment: "Assignment Writing",
+    null: "",
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 relative">
@@ -86,14 +124,14 @@ export default function StudentDashboard() {
         </p>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map(({ icon, title, desc, action }, index) => (
+          {features.map(({ icon, title, desc, type }, index) => (
             <motion.div
-              key={title}
+              key={type}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="bg-white p-6 rounded-lg shadow-lg text-center cursor-pointer hover:bg-gray-100 transform hover:scale-105 transition-all"
-              onClick={action}
+              onClick={() => openModal(type)}
               role="button"
               aria-label={`Open ${title}`}
             >
@@ -105,14 +143,15 @@ export default function StudentDashboard() {
         </div>
       </div>
 
+      {/* Modal */}
       <AnimatePresence>
         {activeModal && (
           <motion.div
-            key="modal"
+            key={`modal-${activeModal}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-md"
+            className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-md z-50"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -121,27 +160,10 @@ export default function StudentDashboard() {
               className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative"
             >
               <h3 className="text-2xl font-bold text-purple-600 mb-4 text-center">
-                {activeModal === "video"
-                  ? "Uploaded Videos"
-                  : activeModal === "qa"
-                  ? "Question & Answer"
-                  : activeModal === "book"
-                  ? "Book Reader"
-                  : activeModal === "voice"
-                  ? "Voice Note Taker"
-                  : activeModal === "quiz"
-                  ? "Take a Quiz"
-                  : "Assignment Writing"}
+                {modalTitle[activeModal]}
               </h3>
 
-              {activeModal === "video" && user && (
-                <ViewVideo userRole={user.userType} userEmail={user.email} />
-              )}
-              {activeModal === "qa" && <QuestionAnswer />}
-              {activeModal === "book" && <BookReader />}
-              {activeModal === "voice" && <VoiceNoteTaker />}
-              {activeModal === "quiz" && <StudentQuiz />}
-              {activeModal === "assignment" && <AssignmentWriting />}
+              {modalContent}
 
               <div className="flex justify-center mt-4">
                 <Button

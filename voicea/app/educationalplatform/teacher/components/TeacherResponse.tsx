@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 
-const API_URL = "https://voicea-back-ldg3.onrender.com/api/questions";
+const API_URL = "https://lperceiva.onrender.com/api/questions";
 
 export default function TeacherResponse() {
   const [questions, setQuestions] = useState<any[]>([]);
